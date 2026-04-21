@@ -4,6 +4,7 @@ A production-ready rate-limiting API built with **TypeScript**, **Express**, **R
 
 ---
 
+**LIVE -** [https://souirce-asia.onrender.com](https://souirce-asia.onrender.com/health)
 ## Features
 
 - **Sliding window rate limiting** — 5 requests per user per minute (configurable)
@@ -125,7 +126,7 @@ Submit a request for processing.
 
 **Example cURL:**
 ```bash
-curl -X POST http://localhost:3000/request \
+curl -X POST https://souirce-asia.onrender.com/request \
   -H "Content-Type: application/json" \
   -d '{"user_id": "user_123", "action": "send_email", "data": {"to": "test@example.com"}}'
 ```
@@ -177,7 +178,7 @@ Get per-user request statistics.
 
 **Example cURL:**
 ```bash
-curl http://localhost:3000/stats
+curl https://souirce-asia.onrender.com/stats
 ```
 
 ```json
@@ -201,7 +202,7 @@ curl http://localhost:3000/stats
 
 **Example cURL:**
 ```bash
-curl "http://localhost:3000/stats?user_id=user_123"
+curl "https://souirce-asia.onrender.com/stats?user_id=user_123"
 ```
 
 ```json
@@ -222,7 +223,7 @@ curl "http://localhost:3000/stats?user_id=user_123"
 
 **Example cURL:**
 ```bash
-curl http://localhost:3000/health
+curl https://souirce-asia.onrender.com/health
 ```
 
 ```json
@@ -257,7 +258,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The API will be available at `http://localhost:3000`.
+The API will be available at `https://souirce-asia.onrender.com`.
 
 ### Option 2: Local Development
 
@@ -285,19 +286,19 @@ npm start
 
 ```bash
 # Send a request
-curl -X POST http://localhost:3000/request \
+curl -X POST https://souirce-asia.onrender.com/request \
   -H "Content-Type: application/json" \
   -d '{"user_id": "test_user", "action": "demo"}'
 
 # Check stats
-curl http://localhost:3000/stats
+curl https://souirce-asia.onrender.com/stats
 
 # Health check
-curl http://localhost:3000/health
+curl https://souirce-asia.onrender.com/health
 
 # Trigger rate limit (run 6+ times quickly)
 for i in $(seq 1 7); do
-  curl -s -X POST http://localhost:3000/request \
+  curl -s -X POST https://souirce-asia.onrender.com/request \
     -H "Content-Type: application/json" \
     -d '{"user_id": "test_user"}' | jq .status
 done
