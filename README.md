@@ -28,7 +28,7 @@ HTTP Request
   ▼
 ┌──────────────────────────────────────────────────────┐
 │  Server  (server.ts)                                 │
-│  Express app, middleware, route mounting, lifecycle   │
+│  Express app, middleware, route mounting, lifecycle  │
 │                                                      │
 │  ┌────────────────────────────────────────────────┐  │
 │  │  Routers  (routes/)                            │  │
@@ -72,13 +72,16 @@ POST /request
                 ├─ Validate user_id
                 │
                 ├─ RateLimiterService.check(userId)
-                │     └─ RateLimitRepository.getWindowState() ──→ Redis ZRANGEBYSCORE
-                │     └─ RateLimitRepository.addEntry()         ──→ Redis ZADD
+                │     ├─ RateLimitRepository.getWindowState() ──→ Redis ZREMRANGEBYSCORE, ZCARD, ZRANGE
+                │     └─ [if allowed] RateLimitRepository.addEntry() ──→ Redis ZADD, PEXPIRE
+                │
+                ├─ Set X-RateLimit Headers
                 │
                 ├─ [if allowed]  StatsService.recordAccepted()
                 │                  └─ StatsRepository.incrementAccepted() ──→ Redis HINCRBY
                 │
-                └─ [if denied]   QueueService.enqueueRequest() ──→ BullMQ Queue
+                └─ [if denied]   Set Retry-After Header
+                                 QueueService.enqueueRequest() ──→ BullMQ Queue
                                  StatsService.recordRejected()
                                  StatsService.recordQueued()
 ```
@@ -118,6 +121,13 @@ Submit a request for processing.
   "action": "send_email",
   "data": { "to": "test@example.com" }
 }
+```
+
+**Example cURL:**
+```bash
+curl -X POST http://localhost:3000/request \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "user_123", "action": "send_email", "data": {"to": "test@example.com"}}'
 ```
 
 **Success (200):**
@@ -165,6 +175,11 @@ Get per-user request statistics.
 
 **All users:** `GET /stats`
 
+**Example cURL:**
+```bash
+curl http://localhost:3000/stats
+```
+
 ```json
 {
   "data": [
@@ -184,6 +199,11 @@ Get per-user request statistics.
 
 **Single user:** `GET /stats?user_id=user_123`
 
+**Example cURL:**
+```bash
+curl "http://localhost:3000/stats?user_id=user_123"
+```
+
 ```json
 {
   "data": {
@@ -199,6 +219,11 @@ Get per-user request statistics.
 ```
 
 ### `GET /health`
+
+**Example cURL:**
+```bash
+curl http://localhost:3000/health
+```
 
 ```json
 {
